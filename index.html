@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MangaMaze</title>
+
+  <!-- Google font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --muted:#94a3b8;
+      --accent:#ff6b6b;
+      --glass: rgba(255,255,255,0.04);
+      --radius:16px;
+      --transition: 220ms cubic-bezier(.2,.9,.2,1);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+      background: linear-gradient(180deg, #071029 0%, #071022 40%), var(--bg);
+      color:#e6eef8;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:32px;
+      display:flex;
+      flex-direction:column;
+      gap:24px;
+      min-height:100vh;
+    }
+
+    /* Top bar */
+    .topbar{
+      display:flex;
+      align-items:center;
+      gap:16px;
+      justify-content:space-between;
+      max-width:1200px;
+      width:100%;
+      margin:0 auto;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .logo-placeholder{
+      width:56px;
+      height:56px;
+      border-radius:12px;
+      background: linear-gradient(135deg,#0b233b, #10293f);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:800;
+      font-size:20px;
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+      border:1px solid rgba(255,255,255,0.04);
+    }
+    .brand h1{margin:0;font-size:20px;letter-spacing:0.6px}
+    .brand p{margin:0;font-size:12px;color:var(--muted)}
+
+    /* search and actions */
+    .controls{
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .search {
+      display:flex;
+      align-items:center;
+      background:var(--glass);
+      padding:8px 12px;
+      border-radius:12px;
+      gap:8px;
+      min-width:260px;
+      border:1px solid rgba(255,255,255,0.03);
+      transition: box-shadow var(--transition);
+    }
+    .search:focus-within{ box-shadow: 0 6px 30px rgba(7,18,36,0.6) }
+    .search input{
+      background:transparent;
+      border:0;
+      outline:0;
+      color:inherit;
+      font-size:14px;
+      width:260px;
+    }
+    .btn{
+      background:linear-gradient(90deg,var(--accent),#ff9b6b);
+      color:#071022;
+      padding:10px 14px;
+      border-radius:12px;
+      font-weight:700;
+      border:0;
+      cursor:pointer;
+      transition: transform var(--transition), box-shadow var(--transition);
+      box-shadow: 0 6px 20px rgba(255,107,107,0.12);
+    }
+    .btn.secondary{
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.06);
+      color:var(--muted);
+      font-weight:600;
+      padding:8px 12px;
+      box-shadow:none;
+    }
+
+    /* layout */
+    .container{
+      max-width:1200px;
+      margin:0 auto;
+      width:100%;
+      display:flex;
+      gap:24px;
+      align-items:flex-start;
+    }
+    .sidebar{
+      width:260px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+      padding:16px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.03);
+      height:fit-content;
+      position:sticky;
+      top:32px;
+    }
+    .main{
+      flex:1;
+    }
+
+    .section-title{
+      font-size:14px;
+      color:var(--muted);
+      margin:0 0 12px 0;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+    }
+
+    /* grid */
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap:18px;
+    }
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+      border-radius:12px;
+      padding:10px;
+      transition: transform var(--transition), box-shadow var(--transition);
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,0.03);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .card:hover{
+      transform:translateY(-6px);
+      box-shadow: 0 12px 40px rgba(2,6,23,0.6);
+    }
+    .thumb{
+      width:100%;
+      aspect-ratio: 0.72 / 1;
+      border-radius:10px;
+      background-size:cover;
+      background-position:center;
+      border:1px solid rgba(255,255,255,0.04);
+    }
+    .card h3{margin:0;font-size:14px}
+    .card p{margin:0;font-size:12px;color:var(--muted)}
+
+    /* series page */
+    .seriesHeader{
+      display:flex;
+      gap:16px;
+      align-items:center;
+      margin-bottom:18px;
+    }
+    .seriesHeader .bigThumb{ width:140px;height:200px;border-radius:12px;background-size:cover;background-position:center;border:1px solid rgba(255,255,255,0.04) }
+    .volumes{display:flex;flex-direction:column;gap:12px}
+    .volume{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px;
+      border-radius:10px;
+      background: rgba(255,255,255,0.02);
+      border:1px solid rgba(255,255,255,0.02);
+    }
+    .volume .meta{display:flex;gap:12px;align-items:center}
+    .volume .cover{width:56px;height:80px;border-radius:8px;background-size:cover;background-position:center;border:1px solid rgba(255,255,255,0.04)}
+    .volume .title{font-weight:700}
+    .small-muted{color:var(--muted);font-size:13px}
+
+    /* reader */
+    .readerWrap{
+      height:calc(100vh - 140px);
+      background:#071122;
+      border-radius:12px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,0.03);
+    }
+    iframe.reader{
+      width:100%;
+      height:100%;
+      border:0;
+      display:block;
+    }
+
+    /* back link */
+    .backLink{color:var(--muted);text-decoration:none;font-size:13px;display:inline-flex;gap:8px;align-items:center}
+    .empty{color:var(--muted);padding:28px;border-radius:12px;background:rgba(255,255,255,0.02);text-align:center}
+
+    /* responsive */
+    @media (max-width:880px){
+      body{padding:18px}
+      .container{flex-direction:column}
+      .sidebar{width:100%;position:static}
+      .topbar{flex-direction:column;align-items:flex-start;gap:12px}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand" style="gap:14px">
+      <div class="logo-placeholder" id="logoSpot">MZ</div>
+      <div>
+        <h1>MangaMaze</h1>
+        <p>All your series — sleek, searchable, simple.</p>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="search" role="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <input id="searchInput" placeholder="Search series, authors, tags..." />
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <aside class="sidebar">
+      <div>
+        <div class="section-title">
+          <div>Collections</div>
+          <small class="small-muted" id="numSeries">0</small>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn secondary" onclick="showAll()">All Series</button>
+          <button class="btn secondary" onclick="filterByTag('Action')">Action</button>
+          <button class="btn secondary" onclick="filterByTag('Romance')">Romance</button>
+          <button class="btn secondary" onclick="filterByTag('Comedy')">Comedy</button>
+        </div>
+      </div>
+
+      <hr style="margin:16px 0;border:0;border-top:1px solid rgba(255,255,255,0.03)">
+
+      <div>
+        <div class="section-title"><div>Quick help</div></div>
+        <div class="small-muted" style="font-size:13px">
+          Edit the <code>seriesData</code> array in the JavaScript to add series — each series includes a title, author, cover image, tags, and volumes (with embed urls).
+        </div>
+      </div>
+    </aside>
+
+    <main class="main" id="app">
+
+      <!-- Main listing view -->
+      <div id="listView">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div>
+            <div class="section-title"><div>Popular series</div></div>
+            <p class="small-muted" id="subText">Browse your collection or search to filter results.</p>
+          </div>
+        </div>
+
+        <div class="grid" id="seriesGrid" aria-live="polite"></div>
+      </div>
+
+      <!-- Series page (hidden until navigated) -->
+      <div id="seriesView" style="display:none">
+        <a href="#" class="backLink" onclick="navigateTo('list')">← Back to collection</a>
+        <div class="seriesHeader" style="margin-top:12px">
+          <div class="bigThumb" id="seriesCover"></div>
+          <div style="flex:1">
+            <h2 id="seriesTitle" style="margin:0"></h2>
+            <div class="small-muted" id="seriesAuthor"></div>
+            <p id="seriesTags" style="margin-top:12px;color:var(--muted)"></p>
+            <div style="margin-top:14px" id="seriesSummary"></div>
+          </div>
+        </div>
+
+        <div>
+          <h3 style="margin-bottom:10px">Volumes</h3>
+          <div class="volumes" id="volumesList"></div>
+        </div>
+      </div>
+
+      <!-- Reader view -->
+      <div id="readerView" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <a href="#" class="backLink" onclick="goBackFromReader()">← Back</a>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="small-muted" id="readerTitle"></div>
+            <button class="btn secondary" onclick="openExternal()">Open in new tab</button>
+          </div>
+        </div>
+        <div class="readerWrap" id="readerWrap">
+          <iframe class="reader" id="readerIframe" srcdoc="<html><body style='background:#071022;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh'><div style='text-align:center'><h2>Drop your embedded reader URL into the seriesData for this volume.</h2><p style='color:#9fb2d6'>Example: embedUrl: 'https://example.com/reader/volume1'</p></div></body></html>"></iframe>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    let seriesData = [
+      {
+        id: 's-jujutsukaisen',
+        title: 'Jujutsu Kaisen',
+        author: 'Gege Akutami',
+        cover: 'https://i.pinimg.com/originals/b3/0e/20/b30e207e113091459506979c6ea1b487.jpg',
+        tags:['Action','Supernatural','Adventure','Dark Fantasy'],
+        summary: "",
+        volumes:[
+          { id:'v1', title:'Volume 1', cover:'https://images.unsplash.com/photo-1541746972996-7d8d4b8d0ef0?q=80&w=800&auto=format&fit=crop&s=abc', embedUrl: '' },
+          { id:'v2', title:'Volume 2', cover:'https://images.unsplash.com/photo-1526772662000-3f88f10405ff?q=80&w=800&auto=format&fit=crop&s=abc', embedUrl: '' },
+        ]
+      },
+      {
+        id: 's-sundaze',
+        title: 'Sundaze Slice',
+        author: 'M. Ito',
+        cover: 'https://images.unsplash.com/photo-1528747045269-390fe33c19e8?q=80&w=1200&auto=format&fit=crop&s=abc',
+        tags:['Slice of Life','Comedy'],
+        summary: "Short, warm stories about small-town weirdness and big heart.",
+        volumes:[
+          { id:'v1', title:'Volume 1', cover:'https://images.unsplash.com/photo-1526312426976-3d39a0a3f5d6?q=80&w=800&auto=format&fit=crop&s=abc', embedUrl: '' },
+        ]
+      }
+    ];
+
+    let currentView = 'list';
+    let currentSeries = null;
+    let currentVolume = null;
+
+    const seriesGrid = document.getElementById('seriesGrid');
+    const numSeries = document.getElementById('numSeries');
+    const searchInput = document.getElementById('searchInput');
+
+    function navigateTo(view){
+      currentView = view;
+      document.getElementById('listView').style.display = view === 'list' ? '' : 'none';
+      document.getElementById('seriesView').style.display = view === 'series' ? '' : 'none';
+      document.getElementById('readerView').style.display = view === 'reader' ? '' : 'none';
+      if(view === 'list') window.location.hash = '#list';
+      if(view === 'series' && currentSeries) window.location.hash = '#series=' + currentSeries.id;
+      if(view === 'reader' && currentSeries && currentVolume) window.location.hash = '#reader=' + currentSeries.id + ':' + currentVolume.id;
+    }
+
+    function showAll(){
+      searchInput.value='';
+      renderGrid(seriesData);
+    }
+    function filterByTag(tag){
+      const filtered = seriesData.filter(s => (s.tags||[]).includes(tag));
+      renderGrid(filtered);
+    }
+
+    function renderGrid(items){
+      seriesGrid.innerHTML='';
+      if(!items || items.length === 0){
+        seriesGrid.innerHTML = `<div class="empty">No series found.</div>`;
+        numSeries.textContent = '0';
+        return;
+      }
+      numSeries.textContent = items.length;
+      for(const s of items){
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="thumb" style="background-image: url('${s.cover || ''}');"></div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <h3>${escapeHtml(s.title)}</h3>
+            <p class="small-muted">${escapeHtml(s.author || '')} • ${(s.tags||[]).join(', ')}</p>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <button class="btn secondary" onclick="openSeries('${s.id}')">View</button>
+              <button class="btn" onclick="openSeries('${s.id}', true)">Open</button>
+            </div>
+          </div>
+        `;
+        seriesGrid.appendChild(card);
+      }
+    }
+
+    function openSeries(seriesId, openReaderIfSingle=false){
+      const s = seriesData.find(x => x.id === seriesId);
+      if(!s) return;
+      currentSeries = s;
+      document.getElementById('seriesTitle').textContent = s.title;
+      document.getElementById('seriesAuthor').textContent = s.author;
+      document.getElementById('seriesCover').style.backgroundImage = `url('${s.cover || ''}')`;
+      document.getElementById('seriesTags').textContent = (s.tags||[]).join(' • ');
+      document.getElementById('seriesSummary').textContent = s.summary || '';
+      const volumesList = document.getElementById('volumesList');
+      volumesList.innerHTML = '';
+      if(!s.volumes || s.volumes.length === 0){
+        volumesList.innerHTML = `<div class="empty">No volumes added yet.</div>`;
+      }else{
+        s.volumes.forEach(v=>{
+          const div = document.createElement('div');
+          div.className = 'volume';
+          div.innerHTML = `
+            <div class="meta">
+              <div class="cover" style="background-image:url('${v.cover || ''}')"></div>
+              <div>
+                <div class="title">${escapeHtml(v.title)}</div>
+                <div class="small-muted">${escapeHtml(s.author)}</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <button class="btn secondary" onclick="openVolume('${s.id}','${v.id}')">Preview</button>
+              <button class="btn" onclick="readVolume('${s.id}','${v.id}')">Read</button>
+            </div>
+          `;
+          volumesList.appendChild(div);
+        });
+      }
+      navigateTo('series');
+      if(openReaderIfSingle && s.volumes && s.volumes.length === 1){
+        readVolume(s.id, s.volumes[0].id);
+      }
+    }
+
+    function openVolume(sid, vid){
+      const s = seriesData.find(x => x.id === sid);
+      if(!s) return;
+      const v = s.volumes.find(x => x.id === vid);
+      if(!v) return alert('Volume not found.');
+      currentSeries = s;
+      currentVolume = v;
+      document.getElementById('readerTitle').textContent = `${s.title} — ${v.title}`;
+      const iframe = document.getElementById('readerIframe');
+      if(v.embedUrl && v.embedUrl.trim() !== ''){
+        iframe.src = v.embedUrl;
+      } else {
+        iframe.srcdoc = `<html><body style='background:#071022;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh'><div style='text-align:center;padding:30px'><h2>No embed URL found</h2><p style='color:#9fb2d6'>Put <code>embedUrl</code> for this volume into the <code>seriesData</code> array in the site script.<br><br>Example: embedUrl: 'https://example.com/reader/volume1'</p></div></body></html>`;
+      }
+      navigateTo('reader');
+    }
+
+    function readVolume(sid, vid){
+      openVolume(sid, vid);
+      if(currentSeries && currentVolume){
+        window.location.hash = `#reader=${currentSeries.id}:${currentVolume.id}`;
+      }
+    }
+
+    function goBackFromReader(){
+      if(currentSeries) navigateTo('series'); else navigateTo('list');
+    }
+
+    function openExternal(){
+      if(currentVolume && currentVolume.embedUrl){
+        window.open(currentVolume.embedUrl, '_blank');
+      } else alert('No embed URL set for this volume.');
+    }
+
+    function escapeHtml(str){
+      if(!str && str !== 0) return '';
+      return String(str).replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]; });
+    }
+
+    searchInput.addEventListener('input', (e)=>{
+      const q = e.target.value.trim().toLowerCase();
+      if(!q) return renderGrid(seriesData);
+      const filtered = seriesData.filter(s=>{
+        const inTitle = s.title && s.title.toLowerCase().includes(q);
+        const inAuthor = s.author && s.author.toLowerCase().includes(q);
+        const inTags = (s.tags||[]).join(' ').toLowerCase().includes(q);
+        return inTitle || inAuthor || inTags;
+      });
+      renderGrid(filtered);
+    });
+
+    function handleHash(){
+      const h = window.location.hash || '#list';
+      if(h.startsWith('#series=')){
+        const id = h.split('=')[1];
+        openSeries(id);
+      } else if(h.startsWith('#reader=')){
+        const parts = h.split('=')[1].split(':');
+        const sid = parts[0], vid = parts[1];
+        if(sid && vid){
+          openSeries(sid);
+          readVolume(sid, vid);
+        } else {
+          navigateTo('list');
+        }
+      } else {
+        navigateTo('list');
+      }
+    }
+
+    window.addEventListener('hashchange', handleHash);
+    renderGrid(seriesData);
+    handleHash();
+    window.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape'){
+        navigateTo('list');
+      }
+    });
+
+    window.mangamaze = {
+      seriesData,
+      openSeries,
+      readVolume,
+      renderGrid
+    };
+  </script>
+</body>
+</html>
